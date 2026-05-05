@@ -20,13 +20,16 @@
     "delivery": "Yetkazib berish",
     "grand_total": "Jami summa",
     "payment_method": "To'lov usuli",
-    "go_to_business": "Biznes oldiga borish"
+    "go_to_business": "Biznes oldiga borish",
+    "assigned_at": "Tayinlangan vaqt",
+    "completed_at": "Yakunlangan vaqt",
+    "status_history": "Status tarixi"
   },
   "auth": {
     "login_title": "Tizimga kirish",
     "courier": "Kuryer",
-    "credential_label": "Elektron pochta",
-    "credential_placeholder": "Elektron pochtangizni kiriting",
+    "credential_label": "Telefon raqam",
+    "credential_placeholder": "998901234567",
     "password_label": "Parol",
     "password_placeholder": "Parolingizni kiriting",
     "login_button": "Kirish",

@@ -20,13 +20,16 @@
     "delivery": "Доставка",
     "grand_total": "Общая сумма",
     "payment_method": "Способ оплаты",
-    "go_to_business": "Перейти к бизнесу"
+    "go_to_business": "Перейти к бизнесу",
+    "assigned_at": "Время назначения",
+    "completed_at": "Время завершения",
+    "status_history": "История статусов"
   },
   "auth": {
     "login_title": "Вход в систему",
     "courier": "Курьер",
-    "credential_label": "Электронная почта",
-    "credential_placeholder": "Введите вашу почту",
+    "credential_label": "Номер телефона",
+    "credential_placeholder": "998901234567",
     "password_label": "Пароль",
     "password_placeholder": "Введите ваш пароль",
     "login_button": "Войти",

@@ -6,8 +6,8 @@
   "auth": {
     "login_title": "Login",
     "courier": "Courier",
-    "credential_label": "Email",
-    "credential_placeholder": "Enter your email",
+    "credential_label": "Phone number",
+    "credential_placeholder": "998901234567",
     "password_label": "Password",
     "password_placeholder": "Enter your password",
     "login_button": "Login",
@@ -37,7 +37,10 @@
     "delivery": "Delivery",
     "grand_total": "Grand total",
     "payment_method": "Payment method",
-    "go_to_business": "Go to business"
+    "go_to_business": "Go to business",
+    "assigned_at": "Assigned at",
+    "completed_at": "Completed at",
+    "status_history": "Status history"
   },
   "all": "All",
   "new": "New",
