@@ -6,12 +6,10 @@ const useAuth = () => {
   const router = useRouter()
 
   useEffect(() => {
-    const mail = localStorage.getItem("mail")
-    const password = localStorage.getItem("password")
+    const token = localStorage.getItem("access_token")
+    const courierId = localStorage.getItem("courier_id")
 
-    const isAuthenticated = mail === "blackma@gmail.com" && password === "blackma.strong.password"
-
-    if (!isAuthenticated) {
+    if (!token || !courierId) {
       router.push('/login')
     }
   }, [router])
