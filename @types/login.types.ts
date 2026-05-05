@@ -6,9 +6,9 @@ export type LoginForm = {
 export const LOGIN_FIELDS = [
   {
     name: "credential" as const,
-    label: "Telefon raqam yoki pochta",
-    placeholder: "Telefon yoki elektron pochta",
-    type: "email" as const,  // was ""
+    label: "Telefon raqam",
+    placeholder: "998901234567",
+    type: "tel" as const,
   },
   {
     name: "password" as const,
