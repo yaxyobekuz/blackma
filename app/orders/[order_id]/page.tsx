@@ -1,31 +1,105 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
-import ProductCard from "@/components/ProductCard";
-import { products } from "../../data/products";
 import { SectionCard } from "@/components/SectionCard";
-import { PAYMENT_METHODS, PaymentMethodId } from "@/@types/payment.method.types";
 import { InfoRow } from "@/components/InfoRow";
-import { PaymentMethodOption } from "@/components/PaymentMethonOption";
 import useAuth from "@/app/hooks/useAuth";
 import useTranslate from "@/app/hooks/useTranslate";
+import {
+  getCourierOrderById,
+  updateCourierOrder,
+  CourierOrder,
+} from "@/app/lib/courier.service";
+import { formatDate } from "@/app/utils/date.formater";
 
-const ITEMS_PER_PAGE = 2;
+const STATUS_LABELS: Record<string, string> = {
+  ASSIGNED: "Tayinlangan",
+  PICKED_UP: "Olib ketildi",
+  IN_TRANSIT: "Yo'lda",
+  DELIVERED: "Yetkazildi",
+  CANCELLED: "Bekor qilindi",
+};
+
+const NEXT_STATUS: Record<string, string | null> = {
+  ASSIGNED: "PICKED_UP",
+  PICKED_UP: "IN_TRANSIT",
+  IN_TRANSIT: "DELIVERED",
+  DELIVERED: null,
+  CANCELLED: null,
+};
+
+const NEXT_STATUS_LABEL: Record<string, string> = {
+  ASSIGNED: "Olib ketdim",
+  PICKED_UP: "Yo'lga chiqdim",
+  IN_TRANSIT: "Yetkazdim",
+};
 
 const Page = () => {
   const router = useRouter();
+  const params = useParams();
   const { t } = useTranslate();
-  const [page, setPage] = useState(1);
-  const [selectedPayment, setSelectedPayment] = useState<PaymentMethodId>("payme");
-
-  const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
-  const paginatedProducts = products.slice(
-    (page - 1) * ITEMS_PER_PAGE,
-    page * ITEMS_PER_PAGE
-  );
+  const orderId = params.order_id as string;
 
   useAuth();
+
+  const [order, setOrder] = useState<CourierOrder | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!orderId) return;
+    getCourierOrderById(orderId)
+      .then(setOrder)
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, [orderId]);
+
+  const handleStatusUpdate = async () => {
+    if (!order) return;
+    const next = NEXT_STATUS[order.status];
+    if (!next) return;
+
+    setUpdating(true);
+    try {
+      const completedAt =
+        next === "DELIVERED" ? new Date().toISOString() : undefined;
+      const updated = await updateCourierOrder(order.id, next, completedAt);
+      // response da order (nested) qaytmaydi, shuning uchun mavjud order ni saqlab qo'yamiz
+      setOrder({ ...updated, order: order.order });
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Xato yuz berdi");
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <section className="p-4 flex items-center justify-center min-h-screen">
+        <p className="text-gray-500">Yuklanmoqda...</p>
+      </section>
+    );
+  }
+
+  if (error || !order) {
+    return (
+      <section className="p-4 flex flex-col items-center justify-center min-h-screen gap-3">
+        <p className="text-red-500">{error || "Buyurtma topilmadi"}</p>
+        <button
+          onClick={() => router.back()}
+          className="text-blue-500 underline"
+        >
+          Orqaga
+        </button>
+      </section>
+    );
+  }
+
+  const totalPrice = order.order?.totalPrice ?? 0;
+  const formattedPrice = totalPrice.toLocaleString("uz-UZ");
+  const nextStatus = NEXT_STATUS[order.status];
 
   return (
     <section className="p-4 space-y-4 pb-24 container">
@@ -39,73 +113,75 @@ const Page = () => {
       </div>
 
       <SectionCard title={t("order.details")}>
-        <InfoRow label={t("order.status")} value={t("order.status_value")} />
-        <InfoRow label={t("order.date")} value="12.12.2025" />
-        <InfoRow label={t("order.address")} value="Uy - Chilonzor 23,30,39" />
-      </SectionCard>
-
-      <section className="bg-white rounded-[20px] px-[14px] py-[5px] pb-4 border-slate-300 border space-y-3">
-        {paginatedProducts.map((product, index) => (
-          <ProductCard
-            key={index}
-            imageSrc={product.image}
-            imageAlt={product.name}
-            productName={product.name}
-            size={product.size}
-            price={product.price}
-            color={product.color}
-          />
-        ))}
-        {totalPages > 1 && (
-          <div className="flex justify-center items-center gap-2 pt-2">
-            <button
-              disabled={page === 1}
-              onClick={() => setPage((p) => p - 1)}
-              className="px-3 py-1 border border-slate-300 rounded disabled:opacity-50"
-            >
-              {t("order.prev")}
-            </button>
-            <span className="text-sm px-2 w-20 flex items-center justify-center">
-              {page} / {totalPages}
-            </span>
-            <button
-              disabled={page === totalPages}
-              onClick={() => setPage((p) => p + 1)}
-              className="px-3 py-1 border border-slate-300 rounded disabled:opacity-50"
-            >
-              {t("order.next")}
-            </button>
-          </div>
+        <InfoRow
+          label={t("order.status")}
+          value={STATUS_LABELS[order.status] ?? order.status}
+        />
+        <InfoRow label={t("order.date")} value={formatDate(order.createdAt)} />
+        {order.assignedAt && (
+          <InfoRow label={t("order.assigned_at")} value={formatDate(order.assignedAt)} />
         )}
-      </section>
+        {order.completedAt && (
+          <InfoRow label={t("order.completed_at")} value={formatDate(order.completedAt)} />
+        )}
+        {order.order?.address && (
+          <InfoRow label={t("order.address")} value={order.order.address} />
+        )}
+      </SectionCard>
 
-      <SectionCard title={t("order.payment_details")}>
-        <InfoRow label={t("order.total")} value="12 599 000" showCurrency />
-        <InfoRow label={t("order.discount")} value="-450 000" highlight="red" showCurrency />
-        <InfoRow label={t("order.delivery")} value="45 000" showCurrency />
-        <span className="w-full flex border-b border-b-slate-300" />
-        <div className="flex justify-between font-bold">
-          <span>{t("order.grand_total")}</span>
-          <span>12 194 000 {t("orders.sum")}</span>
+      {order.statusHistory && Object.keys(order.statusHistory).length > 0 && (
+        <SectionCard title={t("order.status_history")}>
+          {(["ASSIGNED", "PICKED_UP", "IN_TRANSIT", "DELIVERED", "CANCELLED"] as const).map(
+            (s) =>
+              order.statusHistory?.[s] ? (
+                <div key={s} className="flex justify-between text-sm py-1">
+                  <span className="text-gray-600">{STATUS_LABELS[s]}</span>
+                  <span className="font-medium">{formatDate(order.statusHistory[s]!)}</span>
+                </div>
+              ) : null
+          )}
+        </SectionCard>
+      )}
+
+      {order.order?.products && order.order.products.length > 0 && (
+        <SectionCard title={t("order.payment_details")}>
+          {order.order.products.map((product) => (
+            <div key={product.id} className="flex justify-between text-sm py-1">
+              <span>
+                {product.name} × {product.quantity}
+              </span>
+              <span>
+                {product.price.toLocaleString("uz-UZ")} {t("orders.sum")}
+              </span>
+            </div>
+          ))}
+          <span className="w-full flex border-b border-b-slate-300" />
+          <div className="flex justify-between font-bold">
+            <span>{t("order.grand_total")}</span>
+            <span>
+              {formattedPrice} {t("orders.sum")}
+            </span>
+          </div>
+        </SectionCard>
+      )}
+
+      {nextStatus && (
+        <div className="bg-white pt-2">
+          <button
+            onClick={handleStatusUpdate}
+            disabled={updating}
+            className="w-full bg-black text-white font-semibold py-4 rounded-2xl active:scale-95 transition-transform disabled:opacity-60"
+          >
+            {updating ? "Yuklanmoqda..." : NEXT_STATUS_LABEL[order.status]}
+          </button>
         </div>
-      </SectionCard>
+      )}
 
-      <SectionCard title={t("order.payment_method")}>
-        {PAYMENT_METHODS.map((method) => (
-          <PaymentMethodOption
-            key={method.id}
-            method={method}
-            selected={selectedPayment === method.id}
-            onSelect={() => setSelectedPayment(method.id)}
-          />
-        ))}
-      </SectionCard>
-
-      <div className="bg-white pt-2">
-        <button className="w-full bg-black text-white font-semibold py-4 rounded-2xl active:scale-95 transition-transform">
-          {t("order.go_to_business")}
-        </button>
-      </div>
+      {!nextStatus && order.status === "DELIVERED" && (
+        <div className="text-center text-green-600 font-semibold py-3">
+          Buyurtma muvaffaqiyatli yetkazildi ✓
+        </div>
+      )}
     </section>
   );
 };
