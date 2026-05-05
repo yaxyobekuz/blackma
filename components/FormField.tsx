@@ -7,12 +7,12 @@ type FormFieldProps = {
   name: string;
   label: string;
   placeholder: string;
-  type: "email" | "password";
+  type: "email" | "password" | "tel";
   value: string;
   onChange: (value: string) => void;
 };
 
-const fieldIcon = (type: "email" | "password") =>
+const fieldIcon = (type: "email" | "password" | "tel") =>
   type === "password" ? Lock : User;
 
 export const FormField = ({
@@ -25,7 +25,7 @@ export const FormField = ({
 }: FormFieldProps) => {
   const [visible, setVisible] = useState(false);
   const Icon = fieldIcon(type);
-  const inputType = type === "password" && !visible ? "password" : "text";
+  const inputType = type === "password" && !visible ? "password" : type === "tel" ? "tel" : "text";
 
   return (
     <div className="flex flex-col gap-1.5">

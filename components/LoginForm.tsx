@@ -6,36 +6,28 @@ import { LOGIN_FIELDS, LoginForm } from "@/@types/login.types";
 import { FormField } from "./FormField";
 import { useRouter } from "next/navigation";
 import useTranslate from "@/app/hooks/useTranslate";
+import { courierLogin } from "@/app/lib/courier.service";
 
 const INITIAL_FORM: LoginForm = { credential: "", password: "" };
 
 export const LoginFormCard = () => {
   const { t } = useTranslate();
   const [form, setForm] = useState<LoginForm>(INITIAL_FORM);
-  const router = useRouter()
-  const [msg, setMsg] = useState<null | boolean>(null);
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const setField = (key: keyof LoginForm) => (value: string) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
-  const handleSubmit = () => {
-    const mail = form.credential.trim();
+  const handleSubmit = async () => {
+    const phone = form.credential.trim();
     const password = form.password.trim();
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    // reset
     setError(null);
-    setMsg(null);
 
-    if (!mail || !password) {
+    if (!phone || !password) {
       setError(t("auth.fill_all_fields"));
-      return;
-    }
-
-    if (!emailRegex.test(mail)) {
-      setError(t("auth.invalid_email"));
       return;
     }
 
@@ -44,25 +36,21 @@ export const LoginFormCard = () => {
       return;
     }
 
-    const isAuthenticated =
-      mail === "blackma@gmail.com" &&
-      password === "blackma.strong.password";
-
-    if (isAuthenticated) {
-      localStorage.setItem("mail", mail);
-      localStorage.setItem("password", password);
-
-      setMsg(true);
-      setError(null);
-
-      setTimeout(() => {
-        router.push("/");
-      }, 500);
-    } else {
-      setMsg(false);
-      setError(t("auth.invalid_credentials"));
+    setLoading(true);
+    try {
+      const res = await courierLogin(phone, password);
+      localStorage.setItem("access_token", res.data.accessToken);
+      localStorage.setItem("courier_id", res.data.courier.id);
+      localStorage.setItem("courier_name", res.data.courier.name);
+      router.push("/");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : t("auth.invalid_credentials");
+      setError(message);
+    } finally {
+      setLoading(false);
     }
   };
+
   return (
     <div className="bg-white rounded-2xl p-6 shadow-sm w-full space-y-4 max-w-lg">
       <h2 className="text-xl font-bold">{t("auth.login_title")}</h2>
@@ -72,22 +60,9 @@ export const LoginFormCard = () => {
           e.preventDefault();
           handleSubmit();
         }}
-        className="space-y-3">
-        {msg === true && (
-          <span className="text-green-500">
-            {t("auth.credentials_correct")}
-          </span>
-        )}
-
-        {msg === false && (
-          <span className="text-red-500">
-            {t("auth.credentials_incorrect")}
-          </span>
-        )}
-
-        {error && (
-          <span className="text-red-500">{error}</span>
-        )}
+        className="space-y-3"
+      >
+        {error && <span className="text-red-500">{error}</span>}
 
         {LOGIN_FIELDS.map((field) => (
           <FormField
@@ -100,7 +75,7 @@ export const LoginFormCard = () => {
             onChange={setField(field.name)}
           />
         ))}
-        
+
         <div className="flex justify-end">
           <Link
             href="/forgot-password"
@@ -110,14 +85,13 @@ export const LoginFormCard = () => {
           </Link>
         </div>
         <button
-          type="button"
-          onClick={handleSubmit}
-          className="w-full bg-gray-900 text-white font-semibold py-3 rounded-lg hover:bg-black active:scale-95 transition-all"
+          type="submit"
+          disabled={loading}
+          className="w-full bg-gray-900 text-white font-semibold py-3 rounded-lg hover:bg-black active:scale-95 transition-all disabled:opacity-60"
         >
-          {t("auth.login_button")}
+          {loading ? t("auth.loading") || "Yuklanmoqda..." : t("auth.login_button")}
         </button>
       </form>
-
 
       <p className="text-xs text-center text-gray-500">
         {t("auth.login_agreement")}{" "}
@@ -128,6 +102,6 @@ export const LoginFormCard = () => {
           {t("auth.terms_of_use")}
         </Link>
       </p>
-    </div >
+    </div>
   );
 };
