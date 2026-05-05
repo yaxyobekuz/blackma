@@ -5,9 +5,9 @@ import PageHeading from "./ui/PageHeading";
 import ProfileTopBar from "./ui/TopBar";
 import { ChevronRight } from "lucide-react";
 import useAuth from "../hooks/useAuth";
-import { orders } from "../data/orders";
 import LanguageModal from "./ui/LanguageModal";
 import useTranslate from "../hooks/useTranslate";
+import { getCourierById, getCourierOrders, Courier } from "../lib/courier.service";
 
 const LANG_LABELS = {
   uz: "O'zbekcha",
@@ -15,21 +15,34 @@ const LANG_LABELS = {
   ru: "Русский",
 };
 
-type Lang = keyof typeof LANG_LABELS; // "uz" | "en" | "ru"
+type Lang = keyof typeof LANG_LABELS;
 
 export default function ProfilePage() {
   const { t } = useTranslate();
   useAuth();
   const [langModalOpen, setLangModalOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState<Lang>("uz");
+  const [courier, setCourier] = useState<Courier | null>(null);
+  const [ordersCount, setOrdersCount] = useState<number | null>(null);
+
   useEffect(() => {
     const saved = localStorage.getItem("lang") as Lang | null;
     if (saved && saved in LANG_LABELS) setCurrentLang(saved);
+
+    const courierId = localStorage.getItem("courier_id");
+    if (!courierId) return;
+
+    getCourierById(courierId)
+      .then(setCourier)
+      .catch(console.error);
+
+    getCourierOrders(courierId)
+      .then((orders) => setOrdersCount(orders.length))
+      .catch(console.error);
   }, []);
 
   const handleModalClose = () => {
     setLangModalOpen(false);
-
     const saved = localStorage.getItem("lang") as Lang | null;
     if (saved && saved in LANG_LABELS) setCurrentLang(saved);
   };
@@ -46,7 +59,7 @@ export default function ProfilePage() {
         >
           <p className="text-lg Nunito_Sans_SemiBold">{t("profile.my_profile")}</p>
           <p className="flex items-center gap-2 Nunito_Sans_SemiBold">
-            Ibrat <ChevronRight />
+            {courier?.name ?? "..."} <ChevronRight />
           </p>
         </Link>
         <Link
@@ -55,7 +68,7 @@ export default function ProfilePage() {
         >
           <p className="text-lg Nunito_Sans_SemiBold">{t("orders.my_orders")}</p>
           <p className="flex items-center gap-2 Nunito_Sans_SemiBold">
-            {orders.length} <ChevronRight />
+            {ordersCount ?? "..."} <ChevronRight />
           </p>
         </Link>
       </div>
