@@ -3,25 +3,10 @@ import { useState, useMemo, useEffect } from "react";
 import Order from "@/components/Order";
 import useAuth from "./hooks/useAuth";
 import { SlidersHorizontal } from "lucide-react";
-import FilterModal from "@/components/FilterModal";
+import FilterModal, { FilterState, defaultFilters } from "@/components/FilterModal";
 import useTranslate from "./hooks/useTranslate";
 import { getCourierOrders, CourierOrder } from "./lib/courier.service";
-
-type FilterState = {
-  sortBy: string;
-  priceMin: string;
-  priceMax: string;
-  dateFrom: string;
-  dateTo: string;
-};
-
-const defaultFilters: FilterState = {
-  sortBy: "date_desc",
-  priceMin: "",
-  priceMax: "",
-  dateFrom: "",
-  dateTo: "",
-};
+import { STATUS_LABELS } from "./lib/order-status";
 
 const page = () => {
   const { t } = useTranslate();
@@ -48,6 +33,7 @@ const page = () => {
 
   const activeFilterCount = [
     activeFilters.sortBy !== "date_desc",
+    activeFilters.statuses.length > 0,
     activeFilters.dateFrom !== "",
     activeFilters.dateTo !== "",
   ].filter(Boolean).length;
@@ -59,6 +45,10 @@ const page = () => {
       result = result.filter((o) =>
         o.orderId.toLowerCase().includes(search.trim().toLowerCase()),
       );
+    }
+
+    if (activeFilters.statuses.length > 0) {
+      result = result.filter((o) => activeFilters.statuses.includes(o.status));
     }
 
     if (activeFilters.dateFrom) {
@@ -127,6 +117,14 @@ const page = () => {
               {t("filter.oldest")}
             </span>
           )}
+          {activeFilters.statuses.map((s) => (
+            <span
+              key={s}
+              className="text-xs bg-blue-50 text-blue-600 border border-blue-200 rounded-full px-3 py-1 font-medium"
+            >
+              {STATUS_LABELS[s]}
+            </span>
+          ))}
           {(activeFilters.dateFrom || activeFilters.dateTo) && (
             <span className="text-xs bg-blue-50 text-blue-600 border border-blue-200 rounded-full px-3 py-1 font-medium">
               {activeFilters.dateFrom || "..."} → {activeFilters.dateTo || "..."}
