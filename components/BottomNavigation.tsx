@@ -5,7 +5,7 @@ import { Home, User } from "lucide-react";
 import useTranslate from "../app/hooks/useTranslate";
 
 const NAV_ITEMS = [
-  { path: "/", labelKey: "navigation.orders", Icon: Home },
+  { path: "/", labelKey: "navigation.home", Icon: Home },
   { path: "/profile", labelKey: "navigation.profile", Icon: User },
 ];
 

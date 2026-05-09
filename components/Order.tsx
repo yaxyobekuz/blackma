@@ -14,7 +14,7 @@ const OrderCard = ({ orderId, createdAt, status }: OrderCardProps) => {
   return (
     <Link
       href={`/orders/${orderId}`}
-      className="flex items-center justify-between pb-1 px-1 pt-4 border-b border-b-gray-300 hover:bg-gray-50 transition"
+      className="flex items-center justify-between pb-1 px-1 pt-4 border-b border-b-gray-300 hover:bg-gray-50 transition last:border-0"
     >
       <div className="flex flex-col gap-1">
         <span className="text-base font-semibold">#{orderId.slice(0, 8)}</span>
