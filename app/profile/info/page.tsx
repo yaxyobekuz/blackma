@@ -9,7 +9,6 @@ export default function ProfileInfoPage() {
   return (
     <div className="space-y-2 container">
       <ProfileTopBar title={t("navigation.profile")} path="/profile" />
-      <PageHeading>{t("profile.my_profile")}</PageHeading>
       <UpdateProfileInfoFunction />
     </div>
   );

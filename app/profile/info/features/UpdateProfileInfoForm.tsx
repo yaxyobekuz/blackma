@@ -1,10 +1,10 @@
-"use client"
+"use client";
 import { useState, useEffect } from "react";
 import { Pen } from "lucide-react";
 import Button from "../ui/Button";
 import Input from "../ui/Input";
 import Image from "next/image";
-import Man from "@/assets/profiles/profile.jpg"
+import Man from "@/assets/profiles/profile.jpg";
 import useTranslate from "@/app/hooks/useTranslate";
 import {
   getCourierById,
@@ -34,12 +34,14 @@ export default function UpdateProfileInfoFunction() {
   useEffect(() => {
     const courierId = localStorage.getItem("courier_id");
     if (!courierId) return;
-    getCourierById(courierId).then((data) => {
-      setCourier(data);
-      setName(data.name ?? "");
-      setPhone(data.phone ?? "");
-      setEmail(data.email ?? "");
-    }).catch(console.error);
+    getCourierById(courierId)
+      .then((data) => {
+        setCourier(data);
+        setName(data.name ?? "");
+        setPhone(data.phone ?? "");
+        setEmail(data.email ?? "");
+      })
+      .catch(console.error);
   }, []);
 
   const handleProfileSave = async (e: React.FormEvent) => {
@@ -81,7 +83,12 @@ export default function UpdateProfileInfoFunction() {
 
     setSavingPwd(true);
     try {
-      await changePassword(courierId, oldPassword, newPassword, confirmPassword);
+      await changePassword(
+        courierId,
+        oldPassword,
+        newPassword,
+        confirmPassword,
+      );
       setPwdMsg("Parol muvaffaqiyatli o'zgartirildi");
       setOldPassword("");
       setNewPassword("");
@@ -97,23 +104,6 @@ export default function UpdateProfileInfoFunction() {
     <div className="space-y-6">
       {/* Profile update form */}
       <form onSubmit={handleProfileSave} className="space-y-3">
-        <div>
-          <label
-            htmlFor="avatar"
-            className="w-28 h-28 border border-slate-300 flex p-2 rounded-full relative"
-          >
-            <span className="bg-blue-500 absolute text-white p-2 rounded-full border-2 border-white top-0 right-0">
-              <Pen size={16} />
-            </span>
-            <Image
-              src={Man}
-              alt="profile pic"
-              className="w-full h-full object-cover aspect-square rounded-full"
-              width={112}
-              height={112}
-            />
-          </label>
-        </div>
         <div className="flex flex-col gap-1">
           <label htmlFor="name">{t("profile.name")}</label>
           <Input
@@ -121,9 +111,12 @@ export default function UpdateProfileInfoFunction() {
             id="name"
             name="name"
             value={name}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setName(e.target.value)
+            }
           />
         </div>
+
         <div className="flex flex-col gap-1">
           <label htmlFor="tel">{t("profile.phone")}</label>
           <Input
@@ -131,9 +124,12 @@ export default function UpdateProfileInfoFunction() {
             id="tel"
             name="phone"
             value={phone}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPhone(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setPhone(e.target.value)
+            }
           />
         </div>
+
         <div className="flex flex-col gap-1">
           <label htmlFor="email">Email</label>
           <Input
@@ -141,11 +137,16 @@ export default function UpdateProfileInfoFunction() {
             id="email"
             name="email"
             value={email}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setEmail(e.target.value)
+            }
           />
         </div>
+
         {saveMsg && <p className="text-green-600 text-sm">{saveMsg}</p>}
+
         {saveError && <p className="text-red-500 text-sm">{saveError}</p>}
+
         <Button disabled={savingProfile}>
           {savingProfile ? "Saqlanmoqda..." : t("profile.save_changes")}
         </Button>
@@ -161,7 +162,9 @@ export default function UpdateProfileInfoFunction() {
             id="oldPassword"
             name="oldPassword"
             value={oldPassword}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setOldPassword(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setOldPassword(e.target.value)
+            }
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -171,7 +174,9 @@ export default function UpdateProfileInfoFunction() {
             id="newPassword"
             name="newPassword"
             value={newPassword}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewPassword(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setNewPassword(e.target.value)
+            }
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -181,7 +186,9 @@ export default function UpdateProfileInfoFunction() {
             id="confirmPassword"
             name="confirmPassword"
             value={confirmPassword}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setConfirmPassword(e.target.value)
+            }
           />
         </div>
         {pwdMsg && <p className="text-green-600 text-sm">{pwdMsg}</p>}
