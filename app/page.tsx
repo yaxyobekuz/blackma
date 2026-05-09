@@ -79,7 +79,7 @@ const page = () => {
     <section className="container px-5">
       <center>
         <h1 className="font-bold text-2xl mt-5 mb-6">
-          {t("orders.my_orders")}
+          {t("home.title")}
         </h1>
       </center>
 
