@@ -26,8 +26,12 @@ async function baseRequest(path: string, options: RequestInit = {}): Promise<Res
   const res = await fetch(`${BASE_URL}${path}`, { ...options, headers });
 
   if (!res.ok) {
-    const error = await res.json().catch(() => ({ message: res.statusText }));
-    throw new Error(error?.message || `Request failed: ${res.status}`);
+    const error = await res
+      .json()
+      .catch(() => ({ msg: res.statusText }));
+    throw new Error(
+      error?.msg || error?.message || `Request failed: ${res.status}`,
+    );
   }
 
   return res;
