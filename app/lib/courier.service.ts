@@ -1,4 +1,5 @@
 import { apiFetch, apiFetchRaw } from "./api";
+import { OrderStatus } from "./order-status";
 
 export interface LoginResponse {
   code: number;
@@ -19,10 +20,16 @@ export interface CourierOrder {
   id: string;
   courierId: string;
   orderId: string;
-  status: "ASSIGNED" | "PICKED_UP" | "IN_TRANSIT" | "DELIVERED" | "CANCELLED";
+  status: OrderStatus;
   assignedAt?: string;
-  completedAt?: string;
-  statusHistory?: Partial<Record<"ASSIGNED" | "PICKED_UP" | "IN_TRANSIT" | "DELIVERED" | "CANCELLED", string>>;
+  enRouteToPickupAt?: string;
+  atPickupAt?: string;
+  pickedUpAt?: string;
+  enRouteToDropOffAt?: string;
+  atDropOffAt?: string;
+  deliveredAt?: string;
+  cancelledAt?: string;
+  statusHistory?: Partial<Record<OrderStatus, string>>;
   createdAt: string;
   updatedAt: string;
   order?: {
@@ -109,12 +116,11 @@ export async function getOrderByCourierOrderId(
 
 export async function updateCourierOrder(
   courierOrderId: string,
-  status: string,
-  completedAt?: string
+  status: OrderStatus
 ): Promise<CourierOrder> {
   return apiFetch<CourierOrder>(`/api/couriers/orders/${courierOrderId}`, {
     method: "PUT",
-    body: JSON.stringify({ status, ...(completedAt ? { completedAt } : {}) }),
+    body: JSON.stringify({ status }),
   });
 }
 
