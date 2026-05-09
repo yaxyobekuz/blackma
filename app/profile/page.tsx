@@ -37,7 +37,7 @@ export default function ProfilePage() {
       .catch(console.error);
 
     getCourierOrders(courierId)
-      .then((orders) => setOrdersCount(orders.length))
+      .then((res) => setOrdersCount(res.orders?.length ?? 0))
       .catch(console.error);
   }, []);
 
