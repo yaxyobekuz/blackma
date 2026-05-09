@@ -1,7 +1,11 @@
 {
   "navigation": {
+    "home": "Главная",
     "orders": "Заказы",
     "profile": "Профиль"
+  },
+  "home": {
+    "title": "Главная"
   },
   "new": "Нoвиь",
   "all": "Bсе",

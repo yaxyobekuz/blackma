@@ -1,7 +1,11 @@
 {
   "navigation": {
+    "home": "Home",
     "orders": "Orders",
     "profile": "Profile"
+  },
+  "home": {
+    "title": "Home"
   },
   "auth": {
     "login_title": "Login",

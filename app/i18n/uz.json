@@ -1,7 +1,11 @@
 {
   "navigation": {
+    "home": "Asosiy",
     "orders": "Buyurtmalar",
     "profile": "Profil"
+  },
+  "home": {
+    "title": "Asosiy"
   },
   "new": "Yangi",
   "all": "Hammasi",
