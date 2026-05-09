@@ -63,7 +63,7 @@ const Page = () => {
       const updated = await updateCourierOrder(order.id, next);
       setOrder({ ...updated, order: order.order });
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Xato yuz berdi");
+      setError(e instanceof Error ? e.message : t("common.error"));
     } finally {
       setUpdating(false);
     }
@@ -76,7 +76,7 @@ const Page = () => {
       const updated = await updateCourierOrder(order.id, "CANCELLED");
       setOrder({ ...updated, order: order.order });
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Xato yuz berdi");
+      setError(e instanceof Error ? e.message : t("common.error"));
     } finally {
       setUpdating(false);
     }
