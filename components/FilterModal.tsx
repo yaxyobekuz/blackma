@@ -1,17 +1,21 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { X, ChevronDown, Check } from "lucide-react";
+import { X, Check } from "lucide-react";
 import useTranslate from "@/app/hooks/useTranslate";
+import {
+    ORDER_STATUS_FLOW,
+    STATUS_LABELS,
+    OrderStatus,
+} from "@/app/lib/order-status";
 
 type SortOption = {
     labelKey: string;
     value: string;
 };
 
-type FilterState = {
+export type FilterState = {
     sortBy: string;
-    priceMin: string;
-    priceMax: string;
+    statuses: OrderStatus[];
     dateFrom: string;
     dateTo: string;
 };
@@ -26,14 +30,16 @@ type FilterModalProps = {
 const sortOptions: SortOption[] = [
     { labelKey: "filter.newest", value: "date_desc" },
     { labelKey: "filter.oldest", value: "date_asc" },
-    { labelKey: "filter.price_desc", value: "price_desc" },
-    { labelKey: "filter.price_asc", value: "price_asc" },
 ];
 
-const defaultFilters: FilterState = {
+const STATUS_OPTIONS: OrderStatus[] = [
+    ...ORDER_STATUS_FLOW,
+    "CANCELLED",
+];
+
+export const defaultFilters: FilterState = {
     sortBy: "date_desc",
-    priceMin: "",
-    priceMax: "",
+    statuses: [],
     dateFrom: "",
     dateTo: "",
 };
@@ -51,6 +57,7 @@ export default function FilterModal({
 
     useEffect(() => {
         if (isOpen) {
+            setFilters(initialFilters);
             setVisible(true);
             document.body.style.overflow = "hidden";
         } else {
@@ -59,7 +66,7 @@ export default function FilterModal({
         return () => {
             document.body.style.overflow = "";
         };
-    }, [isOpen]);
+    }, [isOpen, initialFilters]);
 
     const handleClose = () => {
         setVisible(false);
@@ -77,10 +84,18 @@ export default function FilterModal({
         handleClose();
     };
 
+    const toggleStatus = (status: OrderStatus) => {
+        setFilters((f) => ({
+            ...f,
+            statuses: f.statuses.includes(status)
+                ? f.statuses.filter((s) => s !== status)
+                : [...f.statuses, status],
+        }));
+    };
+
     const activeFilterCount = [
         filters.sortBy !== "date_desc",
-        filters.priceMin !== "",
-        filters.priceMax !== "",
+        filters.statuses.length > 0,
         filters.dateFrom !== "",
         filters.dateTo !== "",
     ].filter(Boolean).length;
@@ -163,35 +178,30 @@ export default function FilterModal({
                         </div>
                     </div>
 
-                    {/* Price Range */}
+                    {/* Status */}
                     <div>
                         <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                            {t("filter.price_range")}
+                            {t("filter.status")}
                         </p>
-                        <div className="flex items-center gap-3">
-                            <div className="flex-1 relative">
-                                <input
-                                    type="number"
-                                    placeholder={t("filter.min")}
-                                    value={filters.priceMin}
-                                    onChange={(e) =>
-                                        setFilters((f) => ({ ...f, priceMin: e.target.value }))
-                                    }
-                                    className="w-full bg-gray-50 border-2 border-gray-100 rounded-xl px-4 py-3 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
-                                />
-                            </div>
-                            <div className="w-5 h-0.5 bg-gray-300 shrink-0" />
-                            <div className="flex-1 relative">
-                                <input
-                                    type="number"
-                                    placeholder={t("filter.max")}
-                                    value={filters.priceMax}
-                                    onChange={(e) =>
-                                        setFilters((f) => ({ ...f, priceMax: e.target.value }))
-                                    }
-                                    className="w-full bg-gray-50 border-2 border-gray-100 rounded-xl px-4 py-3 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-blue-400 transition-colors"
-                                />
-                            </div>
+                        <div className="flex flex-wrap gap-2">
+                            {STATUS_OPTIONS.map((status) => {
+                                const active = filters.statuses.includes(status);
+                                return (
+                                    <button
+                                        key={status}
+                                        onClick={() => toggleStatus(status)}
+                                        className="flex items-center gap-1.5 px-3 py-2 rounded-full border-2 transition-all duration-200 text-sm"
+                                        style={{
+                                            borderColor: active ? "#3B82F6" : "#F3F4F6",
+                                            backgroundColor: active ? "#EFF6FF" : "#F9FAFB",
+                                            color: active ? "#1D4ED8" : "#374151",
+                                        }}
+                                    >
+                                        {active && <Check size={13} strokeWidth={2.5} className="text-blue-500" />}
+                                        <span className="font-medium">{STATUS_LABELS[status]}</span>
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
 
