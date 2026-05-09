@@ -1,4 +1,5 @@
 import { products } from "../app/data/products";
+import { OrderStatus } from "../app/lib/order-status";
 
 export interface Order {
     orderId: string;
@@ -19,8 +20,15 @@ export interface CourierOrderDetail {
     id: string;
     courierId: string;
     orderId: string;
-    status: "ASSIGNED" | "PICKED_UP" | "IN_TRANSIT" | "DELIVERED" | "CANCELLED";
-    completedAt?: string;
+    status: OrderStatus;
+    assignedAt?: string;
+    enRouteToPickupAt?: string;
+    atPickupAt?: string;
+    pickedUpAt?: string;
+    enRouteToDropOffAt?: string;
+    atDropOffAt?: string;
+    deliveredAt?: string;
+    cancelledAt?: string;
     createdAt: string;
     updatedAt: string;
     order?: {
