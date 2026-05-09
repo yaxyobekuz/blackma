@@ -11,28 +11,25 @@ import {
   updateCourierOrder,
   CourierOrder,
 } from "@/app/lib/courier.service";
+import {
+  STATUS_LABELS,
+  NEXT_STATUS,
+  NEXT_STATUS_LABEL,
+  STATUS_TIMESTAMP_FIELD,
+  ORDER_STATUS_FLOW,
+  isTerminalStatus,
+  OrderStatus,
+} from "@/app/lib/order-status";
 import { formatDate } from "@/app/utils/date.formater";
 
-const STATUS_LABELS: Record<string, string> = {
-  ASSIGNED: "Tayinlangan",
-  PICKED_UP: "Olib ketildi",
-  IN_TRANSIT: "Yo'lda",
-  DELIVERED: "Yetkazildi",
-  CANCELLED: "Bekor qilindi",
-};
-
-const NEXT_STATUS: Record<string, string | null> = {
-  ASSIGNED: "PICKED_UP",
-  PICKED_UP: "IN_TRANSIT",
-  IN_TRANSIT: "DELIVERED",
-  DELIVERED: null,
-  CANCELLED: null,
-};
-
-const NEXT_STATUS_LABEL: Record<string, string> = {
-  ASSIGNED: "Olib ketdim",
-  PICKED_UP: "Yo'lga chiqdim",
-  IN_TRANSIT: "Yetkazdim",
+const TIMESTAMP_LABEL_KEYS: Partial<Record<OrderStatus, string>> = {
+  EN_ROUTE_TO_PICKUP: "order.en_route_to_pickup_at",
+  AT_PICKUP: "order.at_pickup_at",
+  PICKED_UP: "order.picked_up_at",
+  EN_ROUTE_TO_DROP_OFF: "order.en_route_to_drop_off_at",
+  AT_DROP_OFF: "order.at_drop_off_at",
+  DELIVERED: "order.delivered_at",
+  CANCELLED: "order.cancelled_at",
 };
 
 const Page = () => {
@@ -63,10 +60,20 @@ const Page = () => {
 
     setUpdating(true);
     try {
-      const completedAt =
-        next === "DELIVERED" ? new Date().toISOString() : undefined;
-      const updated = await updateCourierOrder(order.id, next, completedAt);
-      // response da order (nested) qaytmaydi, shuning uchun mavjud order ni saqlab qo'yamiz
+      const updated = await updateCourierOrder(order.id, next);
+      setOrder({ ...updated, order: order.order });
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Xato yuz berdi");
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handleCancel = async () => {
+    if (!order) return;
+    setUpdating(true);
+    try {
+      const updated = await updateCourierOrder(order.id, "CANCELLED");
       setOrder({ ...updated, order: order.order });
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Xato yuz berdi");
@@ -100,6 +107,19 @@ const Page = () => {
   const totalPrice = order.order?.totalPrice ?? 0;
   const formattedPrice = totalPrice.toLocaleString("uz-UZ");
   const nextStatus = NEXT_STATUS[order.status];
+  const showActions = !isTerminalStatus(order.status);
+
+  const timestampRows: { status: OrderStatus; value: string }[] = [];
+  for (const s of ORDER_STATUS_FLOW) {
+    if (s === "ASSIGNED") continue;
+    const field = STATUS_TIMESTAMP_FIELD[s] as keyof CourierOrder | undefined;
+    if (field && order[field]) {
+      timestampRows.push({ status: s, value: order[field] as string });
+    }
+  }
+  if (order.cancelledAt) {
+    timestampRows.push({ status: "CANCELLED", value: order.cancelledAt });
+  }
 
   return (
     <section className="p-4 space-y-4 pb-24 container">
@@ -121,9 +141,13 @@ const Page = () => {
         {order.assignedAt && (
           <InfoRow label={t("order.assigned_at")} value={formatDate(order.assignedAt)} />
         )}
-        {order.completedAt && (
-          <InfoRow label={t("order.completed_at")} value={formatDate(order.completedAt)} />
-        )}
+        {timestampRows.map(({ status, value }) => (
+          <InfoRow
+            key={status}
+            label={t(TIMESTAMP_LABEL_KEYS[status] ?? "order.status")}
+            value={formatDate(value)}
+          />
+        ))}
         {order.order?.address && (
           <InfoRow label={t("order.address")} value={order.order.address} />
         )}
@@ -131,14 +155,13 @@ const Page = () => {
 
       {order.statusHistory && Object.keys(order.statusHistory).length > 0 && (
         <SectionCard title={t("order.status_history")}>
-          {(["ASSIGNED", "PICKED_UP", "IN_TRANSIT", "DELIVERED", "CANCELLED"] as const).map(
-            (s) =>
-              order.statusHistory?.[s] ? (
-                <div key={s} className="flex justify-between text-sm py-1">
-                  <span className="text-gray-600">{STATUS_LABELS[s]}</span>
-                  <span className="font-medium">{formatDate(order.statusHistory[s]!)}</span>
-                </div>
-              ) : null
+          {[...ORDER_STATUS_FLOW, "CANCELLED" as const].map((s) =>
+            order.statusHistory?.[s] ? (
+              <div key={s} className="flex justify-between text-sm py-1">
+                <span className="text-gray-600">{STATUS_LABELS[s]}</span>
+                <span className="font-medium">{formatDate(order.statusHistory[s]!)}</span>
+              </div>
+            ) : null,
           )}
         </SectionCard>
       )}
@@ -165,21 +188,36 @@ const Page = () => {
         </SectionCard>
       )}
 
-      {nextStatus && (
-        <div className="bg-white pt-2">
+      {showActions && (
+        <div className="bg-white pt-2 flex gap-2">
+          {nextStatus && (
+            <button
+              onClick={handleStatusUpdate}
+              disabled={updating}
+              className="flex-1 bg-black text-white font-semibold py-4 rounded-2xl active:scale-95 transition-transform disabled:opacity-60"
+            >
+              {updating ? "Yuklanmoqda..." : NEXT_STATUS_LABEL[order.status]}
+            </button>
+          )}
           <button
-            onClick={handleStatusUpdate}
+            onClick={handleCancel}
             disabled={updating}
-            className="w-full bg-black text-white font-semibold py-4 rounded-2xl active:scale-95 transition-transform disabled:opacity-60"
+            className="bg-red-50 text-red-600 font-semibold py-4 px-5 rounded-2xl active:scale-95 transition-transform disabled:opacity-60"
           >
-            {updating ? "Yuklanmoqda..." : NEXT_STATUS_LABEL[order.status]}
+            {t("order.cancel_button")}
           </button>
         </div>
       )}
 
-      {!nextStatus && order.status === "DELIVERED" && (
+      {order.status === "DELIVERED" && (
         <div className="text-center text-green-600 font-semibold py-3">
           Buyurtma muvaffaqiyatli yetkazildi ✓
+        </div>
+      )}
+
+      {order.status === "CANCELLED" && (
+        <div className="text-center text-red-500 font-semibold py-3">
+          {t("order.cancelled_message")}
         </div>
       )}
     </section>
