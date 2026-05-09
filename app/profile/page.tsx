@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import PageHeading from "./ui/PageHeading";
@@ -7,7 +7,11 @@ import { ChevronRight } from "lucide-react";
 import useAuth from "../hooks/useAuth";
 import LanguageModal from "./ui/LanguageModal";
 import useTranslate from "../hooks/useTranslate";
-import { getCourierById, getCourierOrders, Courier } from "../lib/courier.service";
+import {
+  getCourierById,
+  getCourierOrders,
+  Courier,
+} from "../lib/courier.service";
 
 const LANG_LABELS = {
   uz: "O'zbekcha",
@@ -32,9 +36,7 @@ export default function ProfilePage() {
     const courierId = localStorage.getItem("courier_id");
     if (!courierId) return;
 
-    getCourierById(courierId)
-      .then(setCourier)
-      .catch(console.error);
+    getCourierById(courierId).then(setCourier).catch(console.error);
 
     getCourierOrders(courierId)
       .then((res) => setOrdersCount(res.orders?.length ?? 0))
@@ -57,7 +59,9 @@ export default function ProfilePage() {
           href="/profile/info"
           className="flex items-center justify-between py-4 border-b border-slate-200"
         >
-          <p className="text-lg Nunito_Sans_SemiBold">{t("profile.my_profile")}</p>
+          <p className="text-lg Nunito_Sans_SemiBold">
+            {t("profile.my_profile")}
+          </p>
           <p className="flex items-center gap-2 Nunito_Sans_SemiBold">
             {courier?.name ?? "..."} <ChevronRight />
           </p>
@@ -66,7 +70,9 @@ export default function ProfilePage() {
           href="/profile/orders"
           className="flex items-center justify-between py-4 border-b border-slate-200"
         >
-          <p className="text-lg Nunito_Sans_SemiBold">{t("orders.my_orders")}</p>
+          <p className="text-lg Nunito_Sans_SemiBold">
+            {t("orders.my_orders")}
+          </p>
           <p className="flex items-center gap-2 Nunito_Sans_SemiBold">
             {ordersCount ?? "..."} <ChevronRight />
           </p>
@@ -93,7 +99,8 @@ export default function ProfilePage() {
         >
           <p className="text-lg">{t("profile.help")}</p>
           <p className="flex items-center gap-2">
-            Telegram Support <ChevronRight />
+            Telegram
+            <ChevronRight />
           </p>
         </Link>
       </div>
