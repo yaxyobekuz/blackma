@@ -1,9 +1,10 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import PageHeading from "./ui/PageHeading";
 import ProfileTopBar from "./ui/TopBar";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, LogOut } from "lucide-react";
 import useAuth from "../hooks/useAuth";
 import LanguageModal from "./ui/LanguageModal";
 import useTranslate from "../hooks/useTranslate";
@@ -23,11 +24,20 @@ type Lang = keyof typeof LANG_LABELS;
 
 export default function ProfilePage() {
   const { t } = useTranslate();
+  const router = useRouter();
   useAuth();
   const [langModalOpen, setLangModalOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState<Lang>("uz");
   const [courier, setCourier] = useState<Courier | null>(null);
   const [ordersCount, setOrdersCount] = useState<number | null>(null);
+
+  const handleLogout = () => {
+    if (!window.confirm(t("profile.logout_confirm"))) return;
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("courier_id");
+    localStorage.removeItem("courier_name");
+    router.push("/login");
+  };
 
   useEffect(() => {
     const saved = localStorage.getItem("lang") as Lang | null;
@@ -62,7 +72,7 @@ export default function ProfilePage() {
           <p className="text-lg Nunito_Sans_SemiBold">
             {t("profile.my_profile")}
           </p>
-          <p className="flex items-center gap-2 Nunito_Sans_SemiBold">
+          <p className="flex items-center gap-2 Nunito_Sans_SemiBold text-right">
             {courier?.name ?? "..."} <ChevronRight />
           </p>
         </Link>
@@ -104,6 +114,14 @@ export default function ProfilePage() {
           </p>
         </Link>
       </div>
+
+      <button
+        onClick={handleLogout}
+        className="w-full flex items-center justify-center gap-2 mt-6 py-4 rounded-2xl bg-red-50 text-red-600 font-semibold active:scale-95 transition-transform"
+      >
+        <LogOut size={18} />
+        {t("profile.logout")}
+      </button>
 
       <LanguageModal isOpen={langModalOpen} onClose={handleModalClose} />
     </div>

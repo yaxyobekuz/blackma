@@ -1,10 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Pen } from "lucide-react";
 import Button from "../ui/Button";
 import Input from "../ui/Input";
-import Image from "next/image";
-import Man from "@/assets/profiles/profile.jpg";
+import PasswordInput from "../ui/PasswordInput";
 import useTranslate from "@/app/hooks/useTranslate";
 import {
   getCourierById,
@@ -56,9 +54,9 @@ export default function UpdateProfileInfoFunction() {
       const updated = await updateCourier(courierId, { name, phone, email });
       setCourier(updated);
       localStorage.setItem("courier_name", updated.name);
-      setSaveMsg("Ma'lumotlar saqlandi");
+      setSaveMsg(t("profile.info_saved_success"));
     } catch (e: unknown) {
-      setSaveError(e instanceof Error ? e.message : "Xato yuz berdi");
+      setSaveError(e instanceof Error ? e.message : t("common.error"));
     } finally {
       setSavingProfile(false);
     }
@@ -73,11 +71,11 @@ export default function UpdateProfileInfoFunction() {
     setPwdError(null);
 
     if (newPassword !== confirmPassword) {
-      setPwdError("Yangi parollar mos kelmaydi");
+      setPwdError(t("profile.passwords_mismatch"));
       return;
     }
     if (newPassword.length < 6) {
-      setPwdError("Parol kamida 6 ta belgidan iborat bo'lishi kerak");
+      setPwdError(t("auth.password_min_length"));
       return;
     }
 
@@ -89,12 +87,12 @@ export default function UpdateProfileInfoFunction() {
         newPassword,
         confirmPassword,
       );
-      setPwdMsg("Parol muvaffaqiyatli o'zgartirildi");
+      setPwdMsg(t("profile.password_changed_success"));
       setOldPassword("");
       setNewPassword("");
       setConfirmPassword("");
     } catch (e: unknown) {
-      setPwdError(e instanceof Error ? e.message : "Xato yuz berdi");
+      setPwdError(e instanceof Error ? e.message : t("common.error"));
     } finally {
       setSavingPwd(false);
     }
@@ -148,17 +146,16 @@ export default function UpdateProfileInfoFunction() {
         {saveError && <p className="text-red-500 text-sm">{saveError}</p>}
 
         <Button disabled={savingProfile}>
-          {savingProfile ? "Saqlanmoqda..." : t("profile.save_changes")}
+          {savingProfile ? t("profile.saving") : t("profile.save_changes")}
         </Button>
       </form>
 
       {/* Change password form */}
       <form onSubmit={handleChangePassword} className="space-y-3 border-t pt-4">
-        <h3 className="font-semibold text-lg">Parolni o'zgartirish</h3>
+        <h3 className="font-semibold text-lg">{t("profile.change_password")}</h3>
         <div className="flex flex-col gap-1">
-          <label htmlFor="oldPassword">Joriy parol</label>
-          <Input
-            type="password"
+          <label htmlFor="oldPassword">{t("profile.old_password")}</label>
+          <PasswordInput
             id="oldPassword"
             name="oldPassword"
             value={oldPassword}
@@ -168,9 +165,8 @@ export default function UpdateProfileInfoFunction() {
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label htmlFor="newPassword">Yangi parol</label>
-          <Input
-            type="password"
+          <label htmlFor="newPassword">{t("profile.new_password")}</label>
+          <PasswordInput
             id="newPassword"
             name="newPassword"
             value={newPassword}
@@ -180,9 +176,8 @@ export default function UpdateProfileInfoFunction() {
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label htmlFor="confirmPassword">Yangi parolni tasdiqlang</label>
-          <Input
-            type="password"
+          <label htmlFor="confirmPassword">{t("profile.confirm_new_password")}</label>
+          <PasswordInput
             id="confirmPassword"
             name="confirmPassword"
             value={confirmPassword}
@@ -194,7 +189,7 @@ export default function UpdateProfileInfoFunction() {
         {pwdMsg && <p className="text-green-600 text-sm">{pwdMsg}</p>}
         {pwdError && <p className="text-red-500 text-sm">{pwdError}</p>}
         <Button disabled={savingPwd}>
-          {savingPwd ? "Yuklanmoqda..." : "Parolni o'zgartirish"}
+          {savingPwd ? t("profile.saving") : t("profile.change_password")}
         </Button>
       </form>
     </div>
