@@ -19,7 +19,7 @@ const nunitoSans = Nunito_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Blackma",
+  title: "Tijaro",
   description: "kurier page",
 };
 
